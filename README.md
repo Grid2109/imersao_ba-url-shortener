@@ -1,8 +1,22 @@
-# URL Shortener
+# URL Shortener - API de encurtamento de URLs
 
-API de encurtamento de URLs, com codes curtos gerados por um contador atômico no Redis (`INCR`) e ofuscados em Base62 via Hashids. Os mapeamentos ficam no MongoDB. A API é servida com Fastify e a infraestrutura na AWS é definida com SST.
+Projeto desenvolvido durante a imersão de Arquitetura De Software com codes curtos gerados por um contador atômico no Redis (`INCR`) e ofuscados em Base62 via Hashids. Os mapeamentos ficam no MongoDB. A API é servida com Fastify e a infraestrutura na AWS é definida com SST.
 
 Ambiente de produção: [https://bitly.lira-code.online](https://bitly.lira-code.online)
+
+## Visualização da API
+<img width="1893" height="893" alt="image" src="https://github.com/user-attachments/assets/85d97157-0649-470c-8e99-0d49d50bc820" />
+<img width="1888" height="977" alt="image" src="https://github.com/user-attachments/assets/97bc9121-c7cf-4981-a46f-2b42ab7bc26d" />
+
+
+## Demonstração
+<img width="1885" height="932" alt="image" src="https://github.com/user-attachments/assets/17329b72-df20-47a8-bdce-1a0f16753e11" />
+<img width="1521" height="423" alt="image" src="https://github.com/user-attachments/assets/e9f0676e-27e5-4331-81f9-454f91b68c5a" />
+<img width="1557" height="772" alt="image" src="https://github.com/user-attachments/assets/4cf8ce15-997d-49a6-863e-b6dae541d8ed" />
+
+
+
+
 
 Documentação interativa (Scalar): [https://bitly.lira-code.online/docs](https://bitly.lira-code.online/docs)
 
