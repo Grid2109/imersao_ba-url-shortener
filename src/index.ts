@@ -86,7 +86,7 @@ await app.register(fastifySwagger, {
 });
 
 await app.register(fastifyCors, {
-  origin: ["http://localhost:3000"],
+  origin: ["http://localhost:3000", "https://bitly-app.lira-code.online"],
   credentials: true,
 });
 
