@@ -10,7 +10,12 @@ Ambiente de produção: [https://bitly.lira-code.online](https://bitly.lira-code
 
 
 ## Demonstração
-<img width="1885" height="932" alt="image" src="https://github.com/user-attachments/assets/17329b72-df20-47a8-bdce-1a0f16753e11" />
+<img width="1877" height="811" alt="Captura de tela 2026-10-20 170000" src="https://github.com/user-attachments/assets/ffd74ed7-eaa0-417c-b00c-557dc6909e82" />
+<img width="1655" height="739" alt="image" src="https://github.com/user-attachments/assets/9d4f5d4b-5742-4cc1-bf28-c8ea7e873584" />
+
+
+<img width="1618" height="842" alt="Captura de tela 2026-10-20 170400" src="https://github.com/user-attachments/assets/6bd08b2f-6f66-47fb-91c8-e863b5170dc4" />
+
 <img width="1521" height="423" alt="image" src="https://github.com/user-attachments/assets/e9f0676e-27e5-4331-81f9-454f91b68c5a" />
 <img width="1557" height="772" alt="image" src="https://github.com/user-attachments/assets/4cf8ce15-997d-49a6-863e-b6dae541d8ed" />
 
