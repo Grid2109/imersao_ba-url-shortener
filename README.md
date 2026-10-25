@@ -78,12 +78,14 @@ O arquivo `.env` **não é lido pelo app**: não existe `dotenv` nem `process.en
 | `MongoUrl` | `MONGO_URL` | texto não vazio | `mongo.ts` (conexão) |
 | `HashIdsSalt` | `HASHIDS_SALT` | texto não vazio | `hashids.ts` (embaralha os codes) |
 | `BaseUrl` | `BASE_URL` | URL válida; a barra final é removida | `routes/urls.ts` (monta o `shortUrl`) |
-| `Port` | `PORT` | inteiro positivo (padrão do schema: `3333`) | `index.ts` (porta e documentação) |
+| `Port` | `PORT` | inteiro positivo (o valor real é o do secret: 8080) | `index.ts` (porta e documentação) |
 | `NodeEnv` | `NODE_ENV` | `development`, `production` ou `test` | `index.ts` (formato dos logs) |
 | `MongoMaxPoolSize` | `MONGO_MAX_POOL_SIZE` | inteiro positivo (padrão: `100`) | `mongo.ts` (pool de conexões) |
 | `HashIdsMinLength` | `HASHIDS_MIN_LENGTH` | inteiro maior ou igual a 0 (padrão: `7`) | **não é usada**: `hashids.ts` usa comprimento mínimo `0` |
 
-Duas variáveis do schema não recebem valor de nenhum secret e ficam sempre no padrão:
+O schema do env.ts também define valores padrão (PORT com 3333, HASHIDS_MIN_LENGTH com 7 etc.), mas eles só valem quando a variável chega sem valor. Como todo secret sempre tem valor (o sst.config.ts define um padrão para cada um), esses padrões nunca são aplicados: quem manda é o valor do secret.
+
+Já duas variáveis do schema não recebem valor de nenhum secret e ficam sempre no padrão:
 
 - `MONGO_DB_NAME`: `url_shortener` (usada em `mongo.ts`).
 - `HOST`: `0.0.0.0` (não é usada: o `index.ts` fixa `0.0.0.0` ao subir o servidor).
