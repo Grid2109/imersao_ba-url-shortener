@@ -69,7 +69,7 @@ O app tem dois níveis de configuração:
 1. **Secrets do SST:** é onde os valores ficam guardados. O [`sst.config.ts`](sst.config.ts) declara cada secret e o comando `sst secret set` preenche o valor.
 2. **`src/lib/env.ts`:** lê os secrets (`Resource.*`), valida cada valor com Zod, aplica os padrões e entrega o objeto `env` com as variáveis (`BASE_URL`, `MONGO_URL` etc.) que o resto do código usa. Se algum valor for inválido, o app não sobe e mostra `Invalid environment variables`.
 
-O arquivo `.env` **não é lido pelo app**: não existe `dotenv` nem `process.env` no código. Ele vem de uma fase anterior do projeto, antes do SST, e está no `.gitignore`. O [`.env.example`](.env.example) serve só como referência dos valores que você coloca nos secrets.
+O arquivo .env não é lido pelo app: não existe dotenv nem process.env no código. Ele está no .gitignore. Para saber o que preencher, use as tabelas abaixo: o .env.example ainda tem variáveis do formato antigo (como REDIS_URL) e não reflete a configuração atual.
 
 ### Do secret até o código
 
