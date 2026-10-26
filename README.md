@@ -21,6 +21,8 @@ Ambiente de produção: [https://bitly.lira-code.online](https://bitly.lira-code
 
 
 
+
+
 Documentação interativa (Scalar): [https://bitly.lira-code.online/docs](https://bitly.lira-code.online/docs)
 
 ## Como funciona
@@ -43,7 +45,7 @@ O contador começa em `238328` (62³) para que os primeiros codes já tenham com
 - **Ofuscação, não criptografia.** O Hashids embaralha os codes para que não saiam em sequência, mas não é um recurso de segurança.
 
 ## Stack
- 
+
 | Camada | Tecnologia |
 | --- | --- |
 | Runtime | Node.js 24, TypeScript (ESM) |
@@ -69,7 +71,7 @@ O app tem dois níveis de configuração:
 1. **Secrets do SST:** é onde os valores ficam guardados. O [`sst.config.ts`](sst.config.ts) declara cada secret e o comando `sst secret set` preenche o valor.
 2. **`src/lib/env.ts`:** lê os secrets (`Resource.*`), valida cada valor com Zod, aplica os padrões e entrega o objeto `env` com as variáveis (`BASE_URL`, `MONGO_URL` etc.) que o resto do código usa. Se algum valor for inválido, o app não sobe e mostra `Invalid environment variables`.
 
-O arquivo .env não é lido pelo app: não existe dotenv nem process.env no código. Ele está no .gitignore. Para saber o que preencher, use as tabelas abaixo: o .env.example ainda tem variáveis do formato antigo (como REDIS_URL) e não reflete a configuração atual.
+O arquivo `.env` **não é lido pelo app**: não existe `dotenv` nem `process.env` no código. Ele está no `.gitignore`. Para saber o que preencher, use as tabelas abaixo: o [`.env.example`](.env.example) ainda tem variáveis do formato antigo (como `REDIS_URL`) e não reflete a configuração atual.
 
 ### Do secret até o código
 
@@ -78,12 +80,12 @@ O arquivo .env não é lido pelo app: não existe dotenv nem process.env no cód
 | `MongoUrl` | `MONGO_URL` | texto não vazio | `mongo.ts` (conexão) |
 | `HashIdsSalt` | `HASHIDS_SALT` | texto não vazio | `hashids.ts` (embaralha os codes) |
 | `BaseUrl` | `BASE_URL` | URL válida; a barra final é removida | `routes/urls.ts` (monta o `shortUrl`) |
-| `Port` | `PORT` | inteiro positivo (o valor real é o do secret: 8080) | `index.ts` (porta e documentação) |
+| `Port` | `PORT` | inteiro positivo (o valor real é o do secret: `8080`) | `index.ts` (porta e documentação) |
 | `NodeEnv` | `NODE_ENV` | `development`, `production` ou `test` | `index.ts` (formato dos logs) |
-| `MongoMaxPoolSize` | `MONGO_MAX_POOL_SIZE` | inteiro positivo (padrão: `100`) | `mongo.ts` (pool de conexões) |
-| `HashIdsMinLength` | `HASHIDS_MIN_LENGTH` | inteiro maior ou igual a 0 (padrão: `7`) | **não é usada**: `hashids.ts` usa comprimento mínimo `0` |
+| `MongoMaxPoolSize` | `MONGO_MAX_POOL_SIZE` | inteiro positivo | `mongo.ts` (pool de conexões) |
+| `HashIdsMinLength` | `HASHIDS_MIN_LENGTH` | inteiro maior ou igual a 0 | **não é usada**: `hashids.ts` usa comprimento mínimo `0` |
 
-O schema do env.ts também define valores padrão (PORT com 3333, HASHIDS_MIN_LENGTH com 7 etc.), mas eles só valem quando a variável chega sem valor. Como todo secret sempre tem valor (o sst.config.ts define um padrão para cada um), esses padrões nunca são aplicados: quem manda é o valor do secret.
+O schema do `env.ts` também define valores padrão (`PORT` com `3333`, `HASHIDS_MIN_LENGTH` com `7` etc.), mas eles só valem quando a variável chega sem valor. Como todo secret sempre tem valor (o `sst.config.ts` define um padrão para cada um), esses padrões nunca são aplicados: quem manda é o valor do secret.
 
 Já duas variáveis do schema não recebem valor de nenhum secret e ficam sempre no padrão:
 
@@ -120,7 +122,7 @@ pnpm install
 docker compose up -d
 ```
 
-O Redis do Compose é o contador usado em sst dev: o sst.config.ts aponta o MyRedis para localhost:6379 (opção dev). Em produção, o contador é o ElastiCache.
+O Redis do Compose é o contador usado em `sst dev`: o `sst.config.ts` aponta o `MyRedis` para `localhost:6379` (opção `dev`). Em produção, o contador é o ElastiCache.
 
 ### 3. Configurar a AWS CLI
 
@@ -148,18 +150,23 @@ Os demais secrets já têm um padrão que serve para o ambiente local (veja a ta
 > **Atenção:** nunca coloque connection strings, senhas ou o salt real no repositório. O `HashIdsSalt` não pode mudar depois que existem codes em produção, senão os links antigos deixam de funcionar.
 
 ### 5. Rodar em desenvolvimento
- 
+
 ```bash
 pnpm exec sst dev
 ```
- 
+
 Em `sst dev`, a API não vai para a AWS: o SST executa o `pnpm run dev` (`tsx --watch src/index.ts`) no seu computador (aba `MyService`) e entrega os secrets ao app. Quando a API sobe, ela fica em `http://localhost:8080`, com a documentação em `/docs`. O `sst dev` ocupa o terminal e precisa ficar aberto enquanto você usa a API.
- 
+
 O SST ainda cria na AWS, no seu stage pessoal, a infraestrutura que não roda na sua máquina (rede e cluster do ECS); por isso aparecem várias linhas "Create" na primeira vez. O ElastiCache não é criado: o Redis é o do Docker. Para apagar o que foi criado na AWS: `pnpm exec sst remove`.
- 
+
 > **Como o Redis local entra:** o `sst.config.ts` define `dev: { host: "localhost", port: 6379 }` no `MyRedis`. Em `sst dev`, o `Resource.MyRedis.host` vale `localhost` e o `redis.ts` usa um cliente Redis comum. Em produção, o host é o do ElastiCache e o `redis.ts` usa o cliente em modo cluster com TLS.
- 
+
 Com o `sst dev` rodando, teste a API em **outro terminal**:
+
+```bash
+curl -i -X POST http://localhost:8080/api/shorten -H "Content-Type: application/json" -d '{"url":"https://exemplo.com/teste"}'
+curl -I http://localhost:8080/<shortCode>   # 301 com o Location da URL original
+```
 
 Scripts extras:
 
@@ -241,14 +248,15 @@ GET /:shortCode
 | OpenAPI JSON | `/swagger.json` |
 
 ## Infraestrutura (SST / AWS)
- 
+
 [`sst.config.ts`](sst.config.ts) define o app `url-shortener` com `home: "aws"`:
- 
+
 - **VPC** (`MyVpc`)
 - **Redis** em modo cluster (`MyRedis`): ElastiCache Redis OSS 7.1, `cache.t4g.micro`, 1 fragmento e 1 nó, com criptografia em trânsito e em repouso (em `sst dev`, não é criado: vale o Redis do Docker, pela opção `dev`)
 - **ECS Cluster** + **Service** (`MyService`) com capacidade Fargate (base 1) e Spot
 - **Load balancer** no domínio `bitly.lira-code.online` (HTTP 80 e HTTPS 443 → container 8080)
 - Secrets: `MongoUrl`, `HashIdsSalt`, `HashIdsMinLength`, `Port`, `BaseUrl`, `NodeEnv`, `MongoMaxPoolSize`
+
 O stage `production` está com `protect` e `removal: retain`.
 
 ```bash
@@ -261,7 +269,7 @@ O [`Dockerfile`](Dockerfile) usa Node 24, Corepack/pnpm, `pnpm run build` e `nod
 
 - O contador do Redis é o ponto frágil: se ele for perdido ou voltar atrás, o mesmo ID pode ser entregue de novo. O `_id` único do MongoDB impede que um link sobrescreva outro, mas a gravação duplicada falha.
 - Em produção o Redis roda com 1 nó e sem réplica (Multi-AZ desabilitado). Para um ambiente mais robusto, o caminho é usar mais nós com réplica e backups automáticos.
-- O `redis.ts` usa o cliente em modo cluster com TLS, pensado para o ElastiCache. Para usar um Redis local em `sst dev` (opção `dev` do `sst.aws.Redis`), seria preciso ajustar esse arquivo.
+- O `redis.ts` escolhe o cliente pelo endereço de `Resource.MyRedis.host`: `localhost` ou `127.0.0.1` usa o Redis simples (modo `sst dev`); qualquer outro endereço usa o cluster com TLS do ElastiCache. Se o `dev` apontar para outro host, o app tentará o modo cluster.
 
 ## Estrutura
 
