@@ -120,7 +120,7 @@ pnpm install
 docker compose up -d
 ```
 
-O `docker-compose.yml` também sobe um Redis, mas o app não o usa: o contador vem sempre do recurso `MyRedis` do SST (veja a seção de infraestrutura).
+O `docker-compose.yml` também sobe um Redis, mas a versão atual do app não o usa: o contador vem sempre do recurso `MyRedis` do SST (veja a seção de infraestrutura).
 
 ### 3. Configurar a AWS CLI
 
