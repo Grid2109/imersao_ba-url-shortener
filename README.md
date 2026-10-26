@@ -43,14 +43,14 @@ O contador começa em `238328` (62³) para que os primeiros codes já tenham com
 - **Ofuscação, não criptografia.** O Hashids embaralha os codes para que não saiam em sequência, mas não é um recurso de segurança.
 
 ## Stack
-
+ 
 | Camada | Tecnologia |
 | --- | --- |
 | Runtime | Node.js 24, TypeScript (ESM) |
 | HTTP | Fastify 5, Zod, `@fastify/cors` |
 | Docs | OpenAPI (`@fastify/swagger`) + Scalar (`/docs`) |
 | Persistência | MongoDB |
-| Contador | Redis (cluster em produção via SST) |
+| Contador | Redis (ElastiCache em produção; Redis do Docker em `sst dev`) |
 | Codes | Hashids, alfabeto Base62 |
 | Infra | SST 4, AWS VPC, ElastiCache Redis, ECS Fargate/Spot, ALB + HTTPS |
 | Local | Docker Compose (MongoDB + Redis), pnpm |
@@ -120,7 +120,7 @@ pnpm install
 docker compose up -d
 ```
 
-O `docker-compose.yml` também sobe um Redis, mas a versão atual do app não o usa: o contador vem sempre do recurso `MyRedis` do SST (veja a seção de infraestrutura).
+O Redis do Compose é o contador usado em sst dev: o sst.config.ts aponta o MyRedis para localhost:6379 (opção dev). Em produção, o contador é o ElastiCache.
 
 ### 3. Configurar a AWS CLI
 
@@ -148,14 +148,18 @@ Os demais secrets já têm um padrão que serve para o ambiente local (veja a ta
 > **Atenção:** nunca coloque connection strings, senhas ou o salt real no repositório. O `HashIdsSalt` não pode mudar depois que existem codes em produção, senão os links antigos deixam de funcionar.
 
 ### 5. Rodar em desenvolvimento
-
+ 
 ```bash
 pnpm exec sst dev
 ```
-
-Em `sst dev`, o serviço não é publicado: o SST executa o `pnpm run dev` (`tsx --watch src/index.ts`) na sua máquina (aba `MyService`) e injeta os secrets. A API fica em `http://localhost:8080`, com a documentação em `/docs`. O `MyRedis` é criado na AWS (ElastiCache), então há custo e um tempo de espera na primeira vez. Para apagar os recursos do seu stage pessoal: `pnpm exec sst remove`.
-
-> **Problema conhecido:** hoje o app local não consegue conectar ao `MyRedis` e mostra `ClusterAllFailedError: Failed to refresh slots cache`. A causa provável é que o ElastiCache fica dentro de uma VPC e o `MyVpc` não tem `bastion` (o SST só abre o túnel até a VPC quando o `bastion` está ativado). Enquanto isso não for resolvido, o app local não consegue usar o contador.
+ 
+Em `sst dev`, a API não vai para a AWS: o SST executa o `pnpm run dev` (`tsx --watch src/index.ts`) no seu computador (aba `MyService`) e entrega os secrets ao app. Quando a API sobe, ela fica em `http://localhost:8080`, com a documentação em `/docs`. O `sst dev` ocupa o terminal e precisa ficar aberto enquanto você usa a API.
+ 
+O SST ainda cria na AWS, no seu stage pessoal, a infraestrutura que não roda na sua máquina (rede e cluster do ECS); por isso aparecem várias linhas "Create" na primeira vez. O ElastiCache não é criado: o Redis é o do Docker. Para apagar o que foi criado na AWS: `pnpm exec sst remove`.
+ 
+> **Como o Redis local entra:** o `sst.config.ts` define `dev: { host: "localhost", port: 6379 }` no `MyRedis`. Em `sst dev`, o `Resource.MyRedis.host` vale `localhost` e o `redis.ts` usa um cliente Redis comum. Em produção, o host é o do ElastiCache e o `redis.ts` usa o cliente em modo cluster com TLS.
+ 
+Com o `sst dev` rodando, teste a API em **outro terminal**:
 
 Scripts extras:
 
@@ -237,15 +241,14 @@ GET /:shortCode
 | OpenAPI JSON | `/swagger.json` |
 
 ## Infraestrutura (SST / AWS)
-
+ 
 [`sst.config.ts`](sst.config.ts) define o app `url-shortener` com `home: "aws"`:
-
+ 
 - **VPC** (`MyVpc`)
-- **Redis** em modo cluster (`MyRedis`): ElastiCache Redis OSS 7.1, `cache.t4g.micro`, 1 fragmento e 1 nó, com criptografia em trânsito e em repouso
+- **Redis** em modo cluster (`MyRedis`): ElastiCache Redis OSS 7.1, `cache.t4g.micro`, 1 fragmento e 1 nó, com criptografia em trânsito e em repouso (em `sst dev`, não é criado: vale o Redis do Docker, pela opção `dev`)
 - **ECS Cluster** + **Service** (`MyService`) com capacidade Fargate (base 1) e Spot
 - **Load balancer** no domínio `bitly.lira-code.online` (HTTP 80 e HTTPS 443 → container 8080)
 - Secrets: `MongoUrl`, `HashIdsSalt`, `HashIdsMinLength`, `Port`, `BaseUrl`, `NodeEnv`, `MongoMaxPoolSize`
-
 O stage `production` está com `protect` e `removal: retain`.
 
 ```bash
@@ -270,10 +273,10 @@ src/
   lib/
     env.ts           # validação via SST Resource + Zod
     mongo.ts         # client e collection urls
-    redis.ts         # cluster Redis + contador
+    redis.ts         # Redis (simples em dev, cluster em produção) + contador
     hashids.ts       # encode/decode Base62
 sst.config.ts        # infra AWS
-docker-compose.yml   # Mongo 4.4 + Redis 8 (o app só usa o Mongo)
+docker-compose.yml   # Mongo 4.4 + Redis 8 (usados em sst dev)
 Dockerfile
 ```
 
