@@ -23,6 +23,10 @@ export default $config({
     const vpc = new sst.aws.Vpc("MyVpc");
     const redis = new sst.aws.Redis("MyRedis", {
       vpc,
+      dev: {
+        host: "localhost",
+        port: 6379,
+      },
       cluster: {
         nodes: 1,
       },

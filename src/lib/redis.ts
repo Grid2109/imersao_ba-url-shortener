@@ -1,23 +1,25 @@
 import { Redis, Cluster } from "ioredis";
 import { Resource } from "sst";
 
+const isLocal = ["localhost", "127.0.0.1"].includes(Resource.MyRedis.host);
 
-export const redis =  new Cluster(
-  [
-    {
-      host: Resource.MyRedis.host,
-      port: Resource.MyRedis.port,
-    },
-  ],
-  {
-    redisOptions: {
-      tls: { checkServerIdentity: () => undefined },
-      username: Resource.MyRedis.username,
-      password: Resource.MyRedis.password,
-    },
-  },
-);
-
+export const redis: Redis | Cluster = isLocal
+  ? new Redis({ host: Resource.MyRedis.host, port: Resource.MyRedis.port })
+  : new Cluster(
+      [
+        {
+          host: Resource.MyRedis.host,
+          port: Resource.MyRedis.port,
+        },
+      ],
+      {
+        redisOptions: {
+          tls: { checkServerIdentity: () => undefined },
+          username: Resource.MyRedis.username,
+          password: Resource.MyRedis.password,
+        },
+      },
+    );
 
 export const COUNTER_KEY = "url:counter";
 
